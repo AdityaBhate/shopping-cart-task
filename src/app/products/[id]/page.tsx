@@ -1,15 +1,18 @@
 'use client';
 
-import {Product} from '@/services/fakestoreapi';
+import {useAppDispatch} from '@/hooks/redux-hooks';
+import type {Product} from '@/services/fakestoreapi';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useParams} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import {getProductById} from '@/services/fakestoreapi';
+import {addItem} from '@/redux/cartSlice';
 
 export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const {id} = useParams();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -27,6 +30,10 @@ export default function ProductDetailPage() {
     return <div>Loading...</div>;
   }
 
+  const handleAddToCart = (productId: number) => {
+    dispatch(addItem(productId));
+  };
+
   return (
     <div className="flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -41,9 +48,12 @@ export default function ProductDetailPage() {
           />
           <p className="text-lg font-semibold">Price: ${product.price}</p>
           <p className="text-muted-foreground">{product.description}</p>
-          <Button>Add to Cart</Button>
+          <Button onClick={() => handleAddToCart(product.id)}>
+            Add to Cart
+          </Button>
         </CardContent>
       </Card>
     </div>
   );
 }
+

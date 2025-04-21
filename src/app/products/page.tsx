@@ -6,6 +6,7 @@ import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {useRouter} from 'next/navigation';
+import {ShoppingCart} from 'lucide-react';
 
 export default function ProductListingPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -35,9 +36,17 @@ export default function ProductListingPage() {
     <div className="flex flex-col min-h-screen bg-secondary">
       <header className="bg-background p-4 flex justify-between items-center">
         <h1 className="text-2xl font-semibold tracking-tight">ShopEasy</h1>
-        <Button onClick={handleLogout} variant="outline">
-          Logout
-        </Button>
+        <div className="flex items-center space-x-4">
+          <Link href="/cart">
+            <Button variant="outline">
+              <ShoppingCart className="mr-2" />
+              Cart
+            </Button>
+          </Link>
+          <Button onClick={handleLogout} variant="outline">
+            Logout
+          </Button>
+        </div>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {products.map((product) => (
