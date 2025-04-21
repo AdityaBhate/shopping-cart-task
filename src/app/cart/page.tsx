@@ -13,32 +13,30 @@ import {
 } from '@/components/ui/card';
 import {removeItem, updateQuantity} from '@/redux/cartSlice';
 import {useState} from 'react';
-import {Trash2} from 'lucide-react';
+import {Plus, Minus, Trash2} from 'lucide-react';
 
 export default function CartPage() {
   const cartItems = useAppSelector((state) => state.cart.items);
   const dispatch = useAppDispatch();
 
-  const [quantities, setQuantities] = useState(
-    cartItems.reduce((acc, item) => {
-      acc[item.id] = item.quantity;
-      return acc;
-    }, {})
-  );
-
   const handleRemoveItem = (itemId: number) => {
     dispatch(removeItem(itemId));
-    const newQuantities = {...quantities};
-    delete newQuantities[itemId];
-    setQuantities(newQuantities);
   };
 
-  const handleQuantityChange = (itemId: number, quantity: number) => {
-    setQuantities({...quantities, [itemId]: quantity});
+  const handleIncreaseQuantity = (itemId: number) => {
+    const item = cartItems.find((item) => item.id === itemId);
+    if (item) {
+      dispatch(updateQuantity({id: itemId, quantity: item.quantity + 1}));
+    }
   };
 
-  const handleUpdateQuantity = (itemId: number) => {
-    dispatch(updateQuantity({id: itemId, quantity: quantities[itemId]}));
+  const handleDecreaseQuantity = (itemId: number) => {
+    const item = cartItems.find((item) => item.id === itemId);
+    if (item && item.quantity > 1) {
+      dispatch(updateQuantity({id: itemId, quantity: item.quantity - 1}));
+    } else if (item && item.quantity === 1) {
+      dispatch(removeItem(itemId));
+    }
   };
 
   const calculateTotal = () => {
@@ -70,7 +68,7 @@ export default function CartPage() {
               <ul className="divide-y divide-border">
                 {cartItems.map((item) => (
                   <li key={item.id} className="py-4">
-                    <div className="grid grid-cols-4 gap-4 items-center">
+                    <div className="grid grid-cols-5 gap-4 items-center">
                       <div className="col-span-1">
                         <img
                           src={item.image}
@@ -83,29 +81,25 @@ export default function CartPage() {
                         <p className="text-sm text-muted-foreground">
                           ${item.price}
                         </p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <label htmlFor={`quantity-${item.id}`}>
-                            Quantity:
-                          </label>
-                          <input
-                            type="number"
-                            id={`quantity-${item.id}`}
-                            value={quantities[item.id] || item.quantity}
-                            onChange={(e) =>
-                              handleQuantityChange(
-                                item.id,
-                                parseInt(e.target.value, 10)
-                              )
-                            }
-                            className="w-20 border border-input rounded-md px-2 py-1 text-sm"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => handleUpdateQuantity(item.id)}
-                          >
-                            Update
-                          </Button>
-                        </div>
+                      </div>
+                      <div className="col-span-1 flex items-center justify-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDecreaseQuantity(item.id)}
+                          className="h-6 w-6"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="mx-2">{item.quantity}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleIncreaseQuantity(item.id)}
+                          className="h-6 w-6"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                       <div className="col-span-1 flex justify-end">
                         <Button
