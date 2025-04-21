@@ -1,23 +1,36 @@
 'use client';
 
-import {Product, getAllProducts} from '@/services/fakestoreapi';
+import {Product} from '@/services/fakestoreapi';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {useRouter} from 'next/navigation';
 import {ShoppingCart} from 'lucide-react';
+import axios from 'axios';
+
+const PRODUCTS_PER_PAGE = 6;
 
 export default function ProductListingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const productData = await getAllProducts();
+        const response = await axios.get(
+          `https://fakestoreapi.com/products?limit=${
+            page * PRODUCTS_PER_PAGE
+          }`
+        );
+        const productData: Product[] = response.data;
+        if (productData.length < page * PRODUCTS_PER_PAGE) {
+          setHasMore(false);
+        }
         setProducts(productData);
       } catch (error) {
         console.error('Failed to fetch products:', error);
@@ -33,11 +46,15 @@ export default function ProductListingPage() {
     }
 
     fetchProducts();
-  }, [router]);
+  }, [router, page]);
 
   const handleLogout = () => {
     localStorage.removeItem('userCredentials');
     router.push('/auth/login');
+  };
+
+  const loadMore = () => {
+    setPage((prevPage) => prevPage + 1);
   };
 
   return (
@@ -79,6 +96,17 @@ export default function ProductListingPage() {
           ))
         )}
       </div>
+      {loading ? (
+        <div>Loading more products...</div>
+      ) : hasMore ? (
+        <div className="flex justify-center p-4">
+          <Button onClick={loadMore}>Load More</Button>
+        </div>
+      ) : (
+        <div className="flex justify-center p-4 text-muted-foreground">
+          No more products to load.
+        </div>
+      )}
     </div>
   );
 }

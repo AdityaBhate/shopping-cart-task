@@ -6,18 +6,59 @@ import {Button} from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import {removeItem, updateQuantity} from '@/redux/cartSlice';
-import {useState} from 'react';
-import {Plus, Minus, Trash2} from 'lucide-react';
+import {useEffect, useState} from 'react';
+import {Minus, Plus, Trash2} from 'lucide-react';
+import axios from 'axios';
+
+interface CartItemWithDetails {
+  id: number;
+  quantity: number;
+  product: Product | null;
+}
 
 export default function CartPage() {
   const cartItems = useAppSelector((state) => state.cart.items);
   const dispatch = useAppDispatch();
+  const [cartItemsWithDetails, setCartItemsWithDetails] = useState<
+    CartItemWithDetails[]
+  >([]);
+
+  useEffect(() => {
+    const fetchCartItemsDetails = async () => {
+      const itemsWithDetails: CartItemWithDetails[] = [];
+      for (const item of cartItems) {
+        try {
+          const response = await axios.get(
+            `https://fakestoreapi.com/products/${item.id}`
+          );
+          const product: Product = response.data;
+          itemsWithDetails.push({
+            id: item.id,
+            quantity: item.quantity,
+            product: product,
+          });
+        } catch (error) {
+          console.error(
+            'Failed to fetch product details for item ID:',
+            item.id,
+            error
+          );
+          itemsWithDetails.push({
+            id: item.id,
+            quantity: item.quantity,
+            product: null,
+          });
+        }
+      }
+      setCartItemsWithDetails(itemsWithDetails);
+    };
+
+    fetchCartItemsDetails();
+  }, [cartItems]);
 
   const handleRemoveItem = (itemId: number) => {
     dispatch(removeItem(itemId));
@@ -40,8 +81,11 @@ export default function CartPage() {
   };
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
-      return total + item.price * item.quantity;
+    return cartItemsWithDetails.reduce((total, item) => {
+      if (item.product) {
+        return total + item.product.price * item.quantity;
+      }
+      return total;
     }, 0);
   };
 
@@ -66,53 +110,55 @@ export default function CartPage() {
             </CardHeader>
             <CardContent>
               <ul className="divide-y divide-border">
-                {cartItems.map((item) => (
-                  <li key={item.id} className="py-4">
-                    <div className="grid grid-cols-5 gap-4 items-center">
-                      <div className="col-span-1">
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-24 h-24 object-cover rounded"
-                        />
+                {cartItemsWithDetails.map((item) =>
+                  item.product ? (
+                    <li key={item.id} className="py-4">
+                      <div className="grid grid-cols-5 gap-4 items-center">
+                        <div className="col-span-1">
+                          <img
+                            src={item.product.image}
+                            alt={item.product.title}
+                            className="w-24 h-24 object-cover rounded"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <p className="font-semibold">{item.product.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            ${item.product.price}
+                          </p>
+                        </div>
+                        <div className="col-span-1 flex items-center justify-center">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDecreaseQuantity(item.id)}
+                            className="h-6 w-6"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="mx-2">{item.quantity}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleIncreaseQuantity(item.id)}
+                            className="h-6 w-6"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="col-span-1 flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveItem(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="col-span-2">
-                        <p className="font-semibold">{item.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          ${item.price}
-                        </p>
-                      </div>
-                      <div className="col-span-1 flex items-center justify-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDecreaseQuantity(item.id)}
-                          className="h-6 w-6"
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="mx-2">{item.quantity}</span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleIncreaseQuantity(item.id)}
-                          className="h-6 w-6"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="col-span-1 flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  ) : null
+                )}
               </ul>
               <div className="mt-4 flex justify-end font-semibold">
                 Total: ${calculateTotal().toFixed(2)}
