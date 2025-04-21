@@ -1,6 +1,6 @@
 'use client';
 
-import {useAppDispatch} from '@/hooks/redux-hooks';
+import {useAppDispatch} from '@/hooks/use-redux-hooks';
 import type {Product} from '@/services/fakestoreapi';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -56,4 +56,3 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-
