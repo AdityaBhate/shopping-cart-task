@@ -1,12 +1,14 @@
 'use client';
 
-import {useAppDispatch, useAppSelector} from '@/hooks/use-redux-hooks';
-import type {Product} from '@/services/fakestoreapi';
-import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {useParams} from 'next/navigation';
-import {useEffect, useState} from 'react';
-import {getProductById} from '@/services/fakestoreapi';
+import { useAppDispatch, useAppSelector } from '@/hooks/use-redux-hooks';
+import type { Product } from '@/services/fakestoreapi';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { getProductById } from '@/services/fakestoreapi';
+import { ArrowLeft } from 'lucide-react';
+
 import {addItem} from '@/redux/cartSlice';
 import {useToast} from '@/hooks/use-toast';
 
@@ -15,6 +17,7 @@ export default function ProductDetailPage() {
   const {id} = useParams();
   const dispatch = useAppDispatch();
   const [isAdded, setIsAdded] = useState(false);
+  const router = useRouter();
   const {toast} = useToast();
   const cartItems = useAppSelector((state) => state.cart.items);
 
@@ -50,7 +53,20 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="flex items-center justify-center p-4">
+    <div className="p-4">
+       <div className="mb-4">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
+      
+      
+      <div className="flex items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{product.title}</CardTitle>
@@ -71,6 +87,7 @@ export default function ProductDetailPage() {
           </Button>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

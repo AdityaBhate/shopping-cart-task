@@ -8,6 +8,7 @@ import {Button} from '@/components/ui/button';
 import {useRouter} from 'next/navigation';
 import {ShoppingCart} from 'lucide-react';
 import axios from 'axios';
+import {Loader} from '@/components/ui/loader';
 
 const PRODUCTS_PER_PAGE = 6;
 
@@ -59,7 +60,7 @@ export default function ProductListingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary">
-      <header className="bg-background p-4 flex justify-between items-center">
+      <header className="bg-background p-4 flex justify-between items-center shadow-md">
         <h1 className="text-2xl font-semibold tracking-tight">ShopEasy</h1>
         <div className="flex items-center space-x-4">
           <Link href="/cart">
@@ -75,11 +76,13 @@ export default function ProductListingPage() {
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {loading ? (
-          <div>Loading products...</div>
+          <div className="flex justify-center items-center h-full">
+            <Loader />
+          </div>
         ) : (
           products.map((product) => (
             <Link key={product.id} href={`/products/${product.id}`}>
-              <Card className="h-full">
+              <Card className="h-full shadow-md transition-transform hover:scale-105">
                 <CardHeader>
                   <CardTitle>{product.title}</CardTitle>
                 </CardHeader>
@@ -96,9 +99,7 @@ export default function ProductListingPage() {
           ))
         )}
       </div>
-      {loading ? (
-        <div>Loading more products...</div>
-      ) : hasMore ? (
+      {loading ? null : hasMore ? (
         <div className="flex justify-center p-4">
           <Button onClick={loadMore}>Load More</Button>
         </div>

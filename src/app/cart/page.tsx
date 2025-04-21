@@ -1,6 +1,7 @@
 'use client';
 
 import {useAppDispatch, useAppSelector} from '@/hooks/use-redux-hooks';
+import {Header} from '@/components/header';
 import {Product} from '@/services/fakestoreapi';
 import {Button} from '@/components/ui/button';
 import {
@@ -8,12 +9,12 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
-import {removeItem, updateQuantity} from '@/redux/cartSlice';
+import {removeItem} from '@/redux/cartSlice';
 import {useEffect, useState} from 'react';
 import {Minus, Plus, Trash2} from 'lucide-react';
 import axios from 'axios';
+import {Loader} from '@/components/ui/loader';
 
 interface CartItemWithDetails {
   id: number;
@@ -27,9 +28,11 @@ export default function CartPage() {
   const [cartItemsWithDetails, setCartItemsWithDetails] = useState<
     CartItemWithDetails[]
   >([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCartItemsDetails = async () => {
+      setLoading(true);
       const itemsWithDetails: CartItemWithDetails[] = [];
       for (const item of cartItems) {
         try {
@@ -56,6 +59,7 @@ export default function CartPage() {
         }
       }
       setCartItemsWithDetails(itemsWithDetails);
+      setLoading(false);
     };
 
     fetchCartItemsDetails();
@@ -63,22 +67,6 @@ export default function CartPage() {
 
   const handleRemoveItem = (itemId: number) => {
     dispatch(removeItem(itemId));
-  };
-
-  const handleIncreaseQuantity = (itemId: number) => {
-    const item = cartItems.find((item) => item.id === itemId);
-    if (item) {
-      dispatch(updateQuantity({id: itemId, quantity: item.quantity + 1}));
-    }
-  };
-
-  const handleDecreaseQuantity = (itemId: number) => {
-    const item = cartItems.find((item) => item.id === itemId);
-    if (item && item.quantity > 1) {
-      dispatch(updateQuantity({id: itemId, quantity: item.quantity - 1}));
-    } else if (item && item.quantity === 1) {
-      dispatch(removeItem(itemId));
-    }
   };
 
   const calculateTotal = () => {
@@ -92,13 +80,15 @@ export default function CartPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary">
-      <header className="bg-background p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Your Cart</h1>
-      </header>
-      {cartItems.length === 0 ? (
+      <Header title={'Your Cart'} showBackButton={true} />
+      {loading ? (
+        <div className="flex items-center justify-center flex-grow">
+          <Loader />
+        </div>
+      ) : cartItems.length === 0 ? (
         <div className="flex items-center justify-center flex-grow">
           <Card className="w-full max-w-md">
-            <CardContent className="flex flex-col gap-4">
+            <CardContent className="flex flex-col items-center justify-center gap-4 p-6">
               <p className="text-lg font-semibold">Your cart is empty.</p>
             </CardContent>
           </Card>
@@ -114,7 +104,7 @@ export default function CartPage() {
                 {cartItemsWithDetails.map((item) =>
                   item.product ? (
                     <li key={item.id} className="py-4">
-                      <div className="grid grid-cols-5 gap-4 items-center">
+                      <div className="grid grid-cols-4 gap-4 items-center">
                         <div className="col-span-1">
                           <img
                             src={item.product.image}
@@ -127,25 +117,9 @@ export default function CartPage() {
                           <p className="text-sm text-muted-foreground">
                             ${item.product.price}
                           </p>
-                        </div>
-                        <div className="col-span-1 flex items-center justify-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDecreaseQuantity(item.id)}
-                            className="h-6 w-6"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="mx-2">{item.quantity}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleIncreaseQuantity(item.id)}
-                            className="h-6 w-6"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                          <p className="text-sm">
+                            Quantity: {item.quantity}
+                          </p>
                         </div>
                         <div className="col-span-1 flex justify-end">
                           <Button
@@ -165,9 +139,6 @@ export default function CartPage() {
                 Total: ${calculateTotal().toFixed(2)}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button>Checkout</Button>
-            </CardFooter>
           </Card>
         </div>
       )}
