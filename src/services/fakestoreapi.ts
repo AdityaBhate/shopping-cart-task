@@ -32,7 +32,8 @@ export async function getAllProducts(): Promise<Product[]> {
         'https://fakestoreapi.com/img/81fPKd-mHL._AC_SL1500_.jpg',
       rating: { rate: 3.9, count: 120 },
     },
-    {\n      id: 2,
+    {
+      id: 2,
       title: 'Mens Casual Premium Slim Fit T-Shirts ',
       price: 22.3,
       description:
