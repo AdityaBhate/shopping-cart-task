@@ -1,0 +1,63 @@
+'use client';
+
+import {Product, getAllProducts} from '@/services/fakestoreapi';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {useEffect, useState} from 'react';
+import Link from 'next/link';
+import {Button} from '@/components/ui/button';
+import {useRouter} from 'next/navigation';
+
+export default function ProductListingPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const productData = await getAllProducts();
+      setProducts(productData);
+    };
+
+    const userCredentials = localStorage.getItem('userCredentials');
+    if (!userCredentials) {
+      router.push('/auth/login');
+      return;
+    }
+
+    fetchProducts();
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('userCredentials');
+    router.push('/auth/login');
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-secondary">
+      <header className="bg-background p-4 flex justify-between items-center">
+        <h1 className="text-2xl font-semibold tracking-tight">ShopEasy</h1>
+        <Button onClick={handleLogout} variant="outline">
+          Logout
+        </Button>
+      </header>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+        {products.map((product) => (
+          <Link key={product.id} href={`/products/${product.id}`}>
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>{product.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="h-48 w-full object-contain"
+                />
+                <p className="text-lg font-semibold">Price: ${product.price}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
