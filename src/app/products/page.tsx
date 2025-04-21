@@ -11,11 +11,19 @@ import {ShoppingCart} from 'lucide-react';
 export default function ProductListingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const productData = await getAllProducts();
-      setProducts(productData);
+      setLoading(true);
+      try {
+        const productData = await getAllProducts();
+        setProducts(productData);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     const userCredentials = localStorage.getItem('userCredentials');
@@ -49,23 +57,27 @@ export default function ProductListingPage() {
         </div>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-        {products.map((product) => (
-          <Link key={product.id} href={`/products/${product.id}`}>
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>{product.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="h-48 w-full object-contain"
-                />
-                <p className="text-lg font-semibold">Price: ${product.price}</p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+        {loading ? (
+          <div>Loading products...</div>
+        ) : (
+          products.map((product) => (
+            <Link key={product.id} href={`/products/${product.id}`}>
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle>{product.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2">
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    className="h-48 w-full object-contain"
+                  />
+                  <p className="text-lg font-semibold">Price: ${product.price}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))
+        )}
       </div>
     </div>
   );
