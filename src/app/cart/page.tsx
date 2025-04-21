@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {removeItem, updateQuantity} from '@/redux/cartSlice';
 import {useEffect, useState} from 'react';
