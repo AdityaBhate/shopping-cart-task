@@ -1,6 +1,6 @@
 'use client';
 
-import {useAppDispatch, useAppSelector} from '@/hooks/use-redux-hooks';
+import {useAppDispatch, useAppSelector} from '@/hooks/use-redux-hooks'; // Correct import path
 import {Header} from '@/components/header';
 import {Product} from '@/services/fakestoreapi';
 import {Button} from '@/components/ui/button';
@@ -8,11 +8,11 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
+  CardTitle, 
 } from '@/components/ui/card';
-import {removeItem} from '@/redux/cartSlice';
+import {addItem, removeItem, subtractItem} from '@/redux/cartSlice';
 import {useEffect, useState} from 'react';
-import {Minus, Plus, Trash2} from 'lucide-react';
+import {Minus, Plus, Trash2} from 'lucide-react'; // Correct import
 import axios from 'axios';
 import {Loader} from '@/components/ui/loader';
 
@@ -69,6 +69,14 @@ export default function CartPage() {
     dispatch(removeItem(itemId));
   };
 
+  const handleIncrement = (itemId: number) => {
+    dispatch(addItem({id: itemId}));
+  };
+
+  const handleDecrement = (itemId: number) => {
+    dispatch(subtractItem({id: itemId}));
+  };
+
   const calculateTotal = () => {
     return cartItemsWithDetails.reduce((total, item) => {
       if (item.product) {
@@ -112,14 +120,31 @@ export default function CartPage() {
                             className="w-24 h-24 object-cover rounded"
                           />
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-2 flex flex-col">
                           <p className="font-semibold">{item.product.title}</p>
                           <p className="text-sm text-muted-foreground">
                             ${item.product.price}
                           </p>
-                          <p className="text-sm">
-                            Quantity: {item.quantity}
-                          </p>
+                          <div className="flex items-center mt-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleDecrement(item.id)}
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <p className="mx-2">
+                              {item.quantity}
+                            </p>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleIncrement(item.id)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                         <div className="col-span-1 flex justify-end">
                           <Button
