@@ -13,8 +13,8 @@ import {
 import {addItem, removeItem, subtractItem} from '@/redux/cartSlice';
 import {useEffect, useState} from 'react';
 import {Minus, Plus, Trash2} from 'lucide-react'; // Correct import
-import axios from 'axios';
 import {Loader} from '@/components/ui/loader';
+import axios from 'axios'; 
 
 interface CartItemWithDetails {
   id: number;
@@ -36,9 +36,10 @@ export default function CartPage() {
       const itemsWithDetails: CartItemWithDetails[] = [];
       for (const item of cartItems) {
         try {
+         
           const response = await axios.get(
             `https://fakestoreapi.com/products/${item.id}`
-          );
+          );      
           const product: Product = response.data;
           itemsWithDetails.push({
             id: item.id,
@@ -63,18 +64,45 @@ export default function CartPage() {
     };
 
     fetchCartItemsDetails();
-  }, [cartItems]);
+  }, []);
 
-  const handleRemoveItem = (itemId: number) => {
-    dispatch(removeItem(itemId));
-  };
 
   const handleIncrement = (itemId: number) => {
-    dispatch(addItem({id: itemId}));
+    // Update local state first
+    setCartItemsWithDetails(prev => 
+      prev.map(item => 
+        item.id === itemId 
+          ? { ...item, quantity: item.quantity + 1 } 
+          : item
+      )
+    );
+    
+    // Then dispatch to Redux
+    dispatch(addItem(itemId));
   };
-
+  
   const handleDecrement = (itemId: number) => {
-    dispatch(subtractItem({id: itemId}));
+    // Update local state first
+    setCartItemsWithDetails(prev => 
+      prev.map(item => 
+        item.id === itemId && item.quantity > 1
+          ? { ...item, quantity: item.quantity - 1 } 
+          : item
+      )
+    );
+    
+    // Then dispatch to Redux
+    dispatch(subtractItem(itemId));
+  };
+  
+  const handleRemoveItem = (itemId: number) => {
+    // Update local state first
+    setCartItemsWithDetails(prev => 
+      prev.filter(item => item.id !== itemId)
+    );
+    
+    // Then dispatch to Redux
+    dispatch(removeItem(itemId));
   };
 
   const calculateTotal = () => {
@@ -88,7 +116,7 @@ export default function CartPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary">
-      <Header title={'Your Cart'} showBackButton={true} />
+      <Header title={'Your Cart'} />
       {loading ? (
         <div className="flex items-center justify-center flex-grow">
           <Loader />
